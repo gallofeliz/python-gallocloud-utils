@@ -3,7 +3,7 @@ from pythonjsonlogger import jsonlogger
 
 def configure_logger(level):
 
-    logging.basicConfig(level=level)
+    logging.basicConfig(level=level.upper())
 
     logHandler = logging.StreamHandler()
     formatter = jsonlogger.JsonFormatter('%(levelname)%(message)')
