@@ -20,7 +20,10 @@ def get_next_schedule_time(schedule_or_schedules, now = None):
 
     return round(sorted(times)[0])
 
-def schedule_once(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None):
+def create_scheduler():
+    return sched.scheduler(time.time)
+
+def schedule_once(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, scheduler=None):
     def _action():
         try:
             fn(*args, **kwargs)
@@ -30,13 +33,15 @@ def schedule_once(schedule_or_schedules, fn, args = (), kwargs={}, on_error = No
             else:
                 raise e
 
-    scheduler = sched.scheduler(time.time)
+    provided_scheduler = bool(scheduler)
+    scheduler = scheduler or create_scheduler()
     evt = scheduler.enterabs(get_next_schedule_time(schedule_or_schedules), 1, _action)
-    scheduler.run(False)
+    if not provided_scheduler:
+        scheduler.run()
 
     return lambda: scheduler.cancel(evt)
 
-def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, runAtBegin = False):
+def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, runAtBegin = False, scheduler=None):
     evt = None
 
     def _action():
@@ -52,9 +57,11 @@ def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, r
     def _schedule_next():
         evt = scheduler.enterabs(get_next_schedule_time(schedule_or_schedules), 1, _action)
 
-    scheduler = sched.scheduler(time.time)
+    provided_scheduler = bool(scheduler)
+    scheduler = scheduler or create_scheduler()
     _action() if runAtBegin else _schedule_next()
-    scheduler.run(False)
+    if not provided_scheduler:
+        scheduler.run()
 
     return lambda: scheduler.cancel(evt)
 
