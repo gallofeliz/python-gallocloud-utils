@@ -18,7 +18,8 @@ class TestStringMethods(unittest.TestCase):
             'BACKUP_MAIN_SCHEDULE': '*/5 * * * *',
             'CHECK_SCHEDULE': '2m',
             'GLOBAL_UPLOADLIMIT': '50K',
-            'GLOBAL_DOWNLOADLIMIT': '200K'
+            'GLOBAL_DOWNLOADLIMIT': '200K',
+            'SINGLE': 'yes'
         }, format))
 
     def test_get_next_schedule_time(self):

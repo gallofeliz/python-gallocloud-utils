@@ -36,7 +36,7 @@ def schedule_once(schedule_or_schedules, fn, args = (), kwargs={}, on_error = No
 
     return lambda: scheduler.cancel(evt)
 
-def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None):
+def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, runAtBegin = False):
     evt = None
 
     def _action():
@@ -53,7 +53,7 @@ def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None):
         evt = scheduler.enterabs(get_next_schedule_time(schedule_or_schedules), 1, _action)
 
     scheduler = sched.scheduler(time.time)
-    _schedule_next()
+    _action() if runAtBegin else _schedule_next()
     scheduler.run()
 
     return lambda: scheduler.cancel(evt)
@@ -72,7 +72,7 @@ def schedule_once_in_thread(schedule_or_schedules, fn, args = (), kwargs={}, on_
 
     #return lambda: raise Exception('Not handled')
 
-def schedule_in_thread(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None):
+def schedule_in_thread(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, runAtBegin = False):
     threading.Thread(
         target=schedule,
         kwargs={
@@ -80,7 +80,8 @@ def schedule_in_thread(schedule_or_schedules, fn, args = (), kwargs={}, on_error
             'fn': fn,
             'args': args,
             'kwargs': kwargs,
-            'on_error': on_error
+            'on_error': on_error,
+            'runAtBegin': runAtBegin
         }
     ).start()
 

@@ -54,7 +54,7 @@ def _normalise_environment(key_values):
         return separator.join(key.split(separator)[1:]).lower()
 
     without_more_components = {
-        key: value
+        key.lower(): value
         for key, value in key_values.items()
         if not get_later_components(key)
     }
