@@ -32,7 +32,7 @@ def schedule_once(schedule_or_schedules, fn, args = (), kwargs={}, on_error = No
 
     scheduler = sched.scheduler(time.time)
     evt = scheduler.enterabs(get_next_schedule_time(schedule_or_schedules), 1, _action)
-    scheduler.run()
+    scheduler.run(False)
 
     return lambda: scheduler.cancel(evt)
 
@@ -54,7 +54,7 @@ def schedule(schedule_or_schedules, fn, args = (), kwargs={}, on_error = None, r
 
     scheduler = sched.scheduler(time.time)
     _action() if runAtBegin else _schedule_next()
-    scheduler.run()
+    scheduler.run(False)
 
     return lambda: scheduler.cancel(evt)
 
