@@ -2,6 +2,7 @@ import unittest
 import scheduling
 import threading
 import config
+import yamlconfig
 
 class TestStringMethods(unittest.TestCase):
 
@@ -36,6 +37,31 @@ class TestStringMethods(unittest.TestCase):
             '* * * * sun',
             '0 * * * thu',
         ], now))
+
+    def test_yaml_config(self):
+        def format(config):
+            config['test'] = True
+            return config
+
+        print(yamlconfig.load_config_from_yaml(
+            """
+            repositories:
+              ovh: &ovh
+                OS_MACHIN: truc
+              ovh-grafana:
+                <<: *ovh
+                OS_MACHIN2: hello ${NAME} !
+                OS_ENABLED: ${ENABLED|bool}
+                OS_PORT: ${PORT|int}
+            """,
+            {
+                'NAME': 'Frank',
+                'PORT': '80',
+                'ENABLED': 'True'
+            },
+            format
+        ))
+
 
     def test_schedule_once(self):
         def my_action(name):
