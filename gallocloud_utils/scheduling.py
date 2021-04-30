@@ -1,9 +1,6 @@
 import time, threading, sched
 from croniter import croniter
-
-def convert_to_seconds(duration):
-    seconds_per_unit = {"s": 1, "m": 60, "h": 3600, "d": 86400, "w": 604800}
-    return int(duration[:-1]) * seconds_per_unit[duration[-1].lower()]
+from convertions import convert_to_seconds
 
 def get_next_schedule_time(schedule_or_schedules, now = None):
     if not now:
