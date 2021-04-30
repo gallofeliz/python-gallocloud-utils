@@ -1,4 +1,4 @@
-import logging, os
+import logging, os, re
 from pythonjsonlogger import jsonlogger
 
 class SensitiveMaskingFilter(logging.Filter):
