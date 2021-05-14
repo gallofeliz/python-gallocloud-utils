@@ -1,13 +1,19 @@
 import yaml, re, os
 
-def load_config_from_yaml(content, envs=None, formatter=None):
+def load_config_from_yaml(content=None, default_filepath=None, envs=None, format=None):
     if not envs:
         envs = os.environ
 
-    if not formatter:
-        formatter = lambda x: x
+    if not format:
+        format = lambda x: x
 
     loader = yaml.SafeLoader
+
+    if not content:
+        filepath = envs.get('CONFIG_FILE', default_filepath)
+        f = open(filepath)
+        content = f.read()
+        f.close()
 
     pattern = re.compile('.*?\${(\w+)(?:\|(\w+))?}.*?')
     pattern2 = re.compile('\${(\w+)(?:\|(\w+))?}')
@@ -23,7 +29,10 @@ def load_config_from_yaml(content, envs=None, formatter=None):
                 if not type:
                     type = 'str'
 
-                val = envs.get(env, env)
+                val = envs.get(env)
+
+                if val == None:
+                    raise Exception('Env %s not found' % env)
 
                 if type != 'str':
 
@@ -49,4 +58,4 @@ def load_config_from_yaml(content, envs=None, formatter=None):
     loader.add_implicit_resolver(tag, pattern, None)
     loader.add_constructor(tag, constructor_env_variables)
 
-    return formatter(yaml.load(content, Loader = loader))
+    return format(yaml.load(content, Loader = loader))
