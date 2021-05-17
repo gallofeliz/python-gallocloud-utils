@@ -3,8 +3,37 @@ import scheduling
 import threading
 import config
 import yamlconfig
+import tasks
+import logging
+import time
 
 class TestStringMethods(unittest.TestCase):
+
+    def test_tasks(self):
+        task0 = tasks.Task(lambda: print('exec8'), id='task0', priority='on-idle')
+        task1 = tasks.Task(lambda: print('exec4'), id='task1', priority=8)
+        task2 = tasks.Task(lambda: print('exec1'), id='task2', priority='immediate')
+        task3 = tasks.Task(lambda: print('exec5'), id='task3', priority='normal')
+        task4 = tasks.Task(lambda: print('exec7'), id='task4', priority='inferior')
+        task5 = tasks.Task(lambda: print('exec6'), id='task5', priority=-16)
+        task6 = tasks.Task(lambda: print('exec3'), id='task6', priority='superior')
+        task7 = tasks.Task(lambda: print('exec2'), id='task7', priority='next')
+
+        task_manager = tasks.TaskManager(logging)
+        task_manager.add_task(task1)
+        task_manager.add_task(task2)
+        task_manager.add_task(task0)
+        task_manager.add_task(task3)
+        task_manager.add_task(task4)
+        task_manager.add_task(task4, ignore_if_duplicate=False)
+        task_manager.add_task(task5)
+        task_manager.add_task(task6)
+        task_manager.add_task(task7)
+
+        task_manager.run()
+        time.sleep(1)
+        task_manager.stop()
+
 
     def test_config_from_env(self):
         def format(values):
@@ -54,12 +83,12 @@ class TestStringMethods(unittest.TestCase):
                 OS_ENABLED: ${ENABLED|bool}
                 OS_PORT: ${PORT|int}
             """,
-            {
+            envs={
                 'NAME': 'Frank',
                 'PORT': '80',
                 'ENABLED': 'True'
             },
-            format
+            format=format
         ))
 
 

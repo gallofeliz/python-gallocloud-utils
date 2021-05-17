@@ -1,6 +1,10 @@
 import time, threading, sched
 from croniter import croniter
-from gallocloud_utils.convertions import convert_to_seconds
+
+try:
+    from gallocloud_utils.convertions import convert_to_seconds
+except Exception as int:
+    from convertions import convert_to_seconds
 
 def get_next_schedule_time(schedule_or_schedules, now = None):
     if not now:

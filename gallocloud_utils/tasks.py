@@ -14,8 +14,8 @@ class Task():
         self._result = None
         self._event = None
 
-        if not priority in ['next', 'normal', 'immediate']:
-            raise Exception('Invalid priority')
+        if not priority in ['immediate', 'next', 'superior', 'normal', 'inferior', 'on-idle'] and not type(priority) is int:
+            raise Exception('Invalid priority : excepted immediate, next, normal or int number')
 
         self._priority = priority
 
@@ -68,10 +68,12 @@ class TaskManager():
         self._running_tasks = []
 
     def add_task(self, task, ignore_if_duplicate=True, get_result=False):
-        if ignore_if_duplicate:
-            for item in self._list:
-                if item.get_id() == task.get_id():
-                    return
+        for item in self._list:
+           if item == task:
+               return
+           if ignore_if_duplicate:
+               if item.get_id() == task.get_id():
+                   return
 
         # Add timeout to execute on immediate (in parallel) some backup task to avoid long task freezing queue ?
         # Can use priority on backups to manage some "urgent" backups ?
@@ -83,25 +85,17 @@ class TaskManager():
 
         priority = task.get_priority()
 
-        if priority == 'normal':
-            self._list.append(task)
-        elif priority == 'next':
+        if priority == 'immediate' and len(self._list) != 0 and self._started:
+            threading.Thread(target=self._run_task, args=(task,))
+        else:
             index = 0
             for ctask in self._list:
-                # Can be faster with == normal then index else after loop index = len(self._list)
-                if ctask.get_priority() != 'normal':
-                    index = self._list.index(ctask) + 1
-                else:
+                if self._is_prio_sup(task, ctask):
                     break
+                else:
+                    index = index + 1
 
             self._list.insert(index, task)
-        elif priority == 'immediate':
-            if len(self._list) == 0:
-                self._list.append(task)
-            else:
-                threading.Thread(target=self._run_task, args=(task,))
-        else:
-            raise Exception('Invalid priority')
 
         self._logger.info('Added task', extra={
             'component': 'task_manager',
@@ -117,8 +111,61 @@ class TaskManager():
         if get_result:
             return task.get_result()
 
+    def _is_prio_sup(self, task, ctask):
+        # 'immediate', 'next', 'superior', 'normal', 'inferior', 'on-idle'
+        priority = task.get_priority()
+        cpriority = ctask.get_priority()
+
+        if priority == 'immediate':
+            return True
+
+        if priority == 'next' and cpriority != 'immediate':
+            return True
+
+        if priority == 'on-idle':
+            return False
+
+        if cpriority == 'immediate' or cpriority == 'next':
+            return False
+
+        if cpriority == 'on-idle':
+            return True
+
+        if priority == 'normal':
+            priority = 0
+
+        if cpriority == 'normal':
+            cpriority = 0
+
+        if priority == 'superior' and cpriority != 'superior':
+            return True
+
+        if priority == 'inferior' and cpriority != 'inferior':
+            return False
+
+        if cpriority == 'superior' and priority != 'superior':
+            return False
+
+        if cpriority == 'inferior' and priority != 'inferior':
+            return True
+
+        print(str(priority) + '==' + str(cpriority))
+
+        return priority > cpriority
+
     def run(self):
         self._started = True
+
+        nb_immediates = 0
+        for task in self._list:
+            if task.get_priority == 'immediate':
+                nb_immediates += 1
+
+        if nb_immediates > 1:
+            for x in range(1, nb_immediates):
+                task = self._list.pop(0)
+                threading.Thread(target=self._run_task, args=(task,))
+
         threading.Thread(target=self._routine).start()
 
     def stop(self):
@@ -149,7 +196,7 @@ class TaskManager():
     def _routine(self):
         while True:
             task = self._get_next()
-            if not task and not self.started:
+            if not task and not self._started:
                 break;
             self._run_task(task)
 
