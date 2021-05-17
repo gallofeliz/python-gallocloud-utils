@@ -149,8 +149,6 @@ class TaskManager():
         if cpriority == 'inferior' and priority != 'inferior':
             return True
 
-        print(str(priority) + '==' + str(cpriority))
-
         return priority > cpriority
 
     def run(self):
