@@ -86,7 +86,7 @@ class TaskManager():
         priority = task.get_priority()
 
         if priority == 'immediate' and len(self._list) != 0 and self._started:
-            threading.Thread(target=self._run_task, args=(task,))
+            threading.Thread(target=self._run_task, args=(task,)).start()
         else:
             index = 0
             for ctask in self._list:
