@@ -6,8 +6,15 @@ import yamlconfig
 import tasks
 import logging
 import time
+import jsonlogging
 
 class TestStringMethods(unittest.TestCase):
+
+    def test_logging(self):
+       jsonlogging.configure_logger('INFO').info('main')
+       def hello():
+            jsonlogging.configure_logger('INFO').info('thread')
+       threading.Thread(target=hello).start()
 
     def test_tasks(self):
         task0 = tasks.Task(lambda: print('exec8'), id='task0', priority='on-idle')

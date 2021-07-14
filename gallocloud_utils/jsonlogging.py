@@ -20,7 +20,7 @@ def configure_logger(level, hide_sensitives=True):
     logging.basicConfig(level=level.upper())
 
     logHandler = logging.StreamHandler()
-    formatter = jsonlogger.JsonFormatter('%(levelname)%(message)')
+    formatter = jsonlogger.JsonFormatter('%(levelname)%(threadName)%(message)')
     logHandler.setFormatter(formatter)
     logging.getLogger().handlers = []
     logging.getLogger().addHandler(logHandler)
